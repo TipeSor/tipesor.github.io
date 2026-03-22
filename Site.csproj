@@ -12,7 +12,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="10.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="10.0.4" PrivateAssets="all" />
-    <PackageReference Include="TipeWeb" Version="1.0.0" />
+    <PackageReference Include="TipeWeb" Version="1.0.1" />
   </ItemGroup>
+
+  <PropertyGroup>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <CompilerGeneratedFilesOutputPath>obj/generated</CompilerGeneratedFilesOutputPath>
+  </PropertyGroup>
 
 </Project>
