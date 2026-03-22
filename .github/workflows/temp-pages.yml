@@ -32,7 +32,7 @@ jobs:
         run: dotnet workload install wasm-tools
 
       - name: Publish Site
-        run: dotnet publish Site/Site.csproj -c Release -o publish
+        run: dotnet publish ./Site.csproj -c Release -o publish
 
       - name: Add Pages marker
         run: touch publish/wwwroot/.nojekyll
