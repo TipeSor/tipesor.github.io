@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Redirecting...</title>
+    <script>
+        (() => {
+            function detectBasePath(pathname) {
+                const segments = pathname.split("/").filter(Boolean);
+                if (segments.length > 1) {
+                    return `/${segments[0]}/`;
+                }
+
+                return "/";
+            }
+
+            const { origin, pathname, search, hash } = window.location;
+            const basePath = detectBasePath(pathname);
+            const basePrefix = basePath === "/" ? "" : basePath.slice(0, -1);
+            const appPath = basePrefix && pathname.startsWith(`${basePrefix}/`)
+                ? pathname.slice(basePrefix.length)
+                : pathname;
+
+            const redirectUrl = new URL(basePath, origin);
+            redirectUrl.searchParams.set("p", `${appPath}${search}${hash}`);
+            redirectUrl.searchParams.set("b", basePath);
+
+            window.location.replace(redirectUrl.toString());
+        })();
+    </script>
+</head>
+<body></body>
+</html>

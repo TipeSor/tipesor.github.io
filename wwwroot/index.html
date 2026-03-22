@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="tipeweb-base-path" content="" />
+    <base href="/" />
+    <title>App</title>
+    <script>
+        (() => {
+            function normalizeBasePath(path) {
+                if (!path) {
+                    return "/";
+                }
+
+                let normalized = path.trim();
+                if (!normalized.startsWith("/")) {
+                    normalized = `/${normalized}`;
+                }
+
+                if (!normalized.endsWith("/")) {
+                    normalized += "/";
+                }
+
+                return normalized;
+            }
+
+            const url = new URL(window.location.href);
+            const redirectBasePath = url.searchParams.get("b");
+            const configuredBasePath = document
+                .querySelector('meta[name="tipeweb-base-path"]')
+                ?.getAttribute("content");
+            const detectedBasePath =
+                window.location.pathname !== "/" && window.location.pathname.endsWith("/")
+                    ? window.location.pathname
+                    : "/";
+            const basePath = normalizeBasePath(
+                redirectBasePath ||
+                configuredBasePath ||
+                detectedBasePath);
+
+            const baseElement = document.querySelector("base");
+            if (baseElement) {
+                baseElement.setAttribute("href", basePath);
+            }
+
+            const redirectPath = url.searchParams.get("p");
+            if (!redirectPath) {
+                return;
+            }
+
+            const restoredPath = redirectPath.startsWith("/")
+                ? redirectPath.slice(1)
+                : redirectPath;
+            const restoredUrl = new URL(restoredPath || ".", `${window.location.origin}${basePath}`);
+
+            window.history.replaceState(null, "", restoredUrl);
+        })();
+    </script>
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        window.TipeWeb ??= {};
+        window.TipeWeb.docs ??= (() => {
+            let observer = null;
+
+            function scrollToHash() {
+                const hash = window.location.hash;
+                if (!hash || hash === "#") {
+                    return;
+                }
+
+                const id = hash.slice(1);
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView();
+                }
+            }
+
+            function installHashScrolling() {
+                window.addEventListener("hashchange", () => {
+                    setTimeout(scrollToHash, 0);
+                });
+
+                observer?.disconnect();
+                observer = new MutationObserver(() => {
+                    scrollToHash();
+                });
+
+                observer.observe(document.getElementById("app"), {
+                    childList: true,
+                    subtree: true
+                });
+
+                setTimeout(scrollToHash, 0);
+            }
+
+            return {
+                installHashScrolling
+            };
+        })();
+
+        window.TipeWeb.textList ??= (() => {
+            const states = new WeakMap();
+
+            function isNearEnd(element) {
+                return element.scrollHeight - element.clientHeight - element.scrollTop <= 4;
+            }
+
+            function scrollToEnd(element) {
+                element.scrollTop = element.scrollHeight;
+            }
+
+            function ensureState(element) {
+                let state = states.get(element);
+                if (state) {
+                    return state;
+                }
+
+                state = { atEnd: true, itemCount: 0 };
+                element.addEventListener("scroll", () => {
+                    state.atEnd = isNearEnd(element);
+                });
+                states.set(element, state);
+                return state;
+            }
+
+            return {
+                updateScroll(element, behavior, itemCount, firstRender) {
+                    if (!element) {
+                        return;
+                    }
+
+                    const state = ensureState(element);
+                    const shouldStick = state.atEnd;
+                    const countIncreased = itemCount > state.itemCount;
+
+                    state.itemCount = itemCount;
+
+                    if (firstRender || behavior === "AutoScrollToEnd") {
+                        scrollToEnd(element);
+                        state.atEnd = true;
+                        return;
+                    }
+
+                    if (behavior === "StickToEnd" && countIncreased && shouldStick) {
+                        scrollToEnd(element);
+                        state.atEnd = true;
+                    }
+                }
+            };
+        })();
+
+        window.TipeWeb.storage ??= {
+            get(key) {
+                return window.localStorage.getItem(key);
+            },
+            set(key, value) {
+                window.localStorage.setItem(key, value);
+            }
+        };
+
+        window.TipeWeb.docs.installHashScrolling();
+    </script>
+
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+</body>
+</html>
